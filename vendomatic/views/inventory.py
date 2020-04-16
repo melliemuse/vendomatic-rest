@@ -19,7 +19,7 @@ class InventorySerializer(serializers.HyperlinkedModelSerializer):
             view_name='inventory',
             lookup_field='id'
         )
-        fields = ('id', 'beverageType', 'quantity', 'Stock', 'sold')
+        fields = ('id', 'beverageType', 'quantity', 'stock')
 
 
 class Inventories(ViewSet):
@@ -46,7 +46,7 @@ class Inventories(ViewSet):
         """
         beverage = Beverage.objects.raw(
             '''
-            SELECT bev.id, bev.quantity, COUNT(trans.beverageId_id) as sold, (bev.quantity - COUNT(trans.beverageId_id)) AS Stock FROM
+            SELECT bev.id, bev.quantity, COUNT(trans.beverageId_id) as sold, (bev.quantity - COUNT(trans.beverageId_id)) AS stock FROM
             vendomatic_beverage bev
             LEFT Join vendomatic_transaction trans
             on bev.id = trans.beverageId_id
