@@ -8,6 +8,7 @@ from vendomatic.views import *
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'inventory', Inventories, 'inventories')
+router.register(r'', Coins, 'coins')
 
 
 
