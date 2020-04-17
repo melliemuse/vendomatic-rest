@@ -1,0 +1,87 @@
+[
+    {
+        "model": "vendomatic.customer",
+        "pk": 1,
+        "fields": {
+            "name": "Esmerelda",
+            "user": 2
+        }
+    },
+    {
+        "model": "vendomatic.beverage",
+        "pk": 1,
+        "fields": {
+            "beverageType": "ginger beer",
+            "price": 2,
+            "quantity": 5,
+            "stock": 0
+        }
+    },
+    {
+        "model": "vendomatic.beverage",
+        "pk": 2,
+        "fields": {
+            "beverageType": "root beer",
+            "price": 2,
+            "quantity": 5,
+            "stock": 0
+        }
+    },
+    {
+        "model": "vendomatic.beverage",
+        "pk": 3,
+        "fields": {
+            "beverageType": "limeade",
+            "price": 2,
+            "quantity": 5,
+            "stock": 0
+        }
+    },
+    {
+        "model": "vendomatic.transaction",
+        "pk": 1,
+        "fields": {
+            "beverageId": 1,
+            "coin": 0
+        }
+    },
+    {
+        "model": "vendomatic.transaction",
+        "pk": 2,
+        "fields": {
+            "beverageId": 1,
+            "coin": 0
+        }
+    },
+    {
+        "model": "vendomatic.transaction",
+        "pk": 3,
+        "fields": {
+            "beverageId": 2,
+            "coin": 0
+        }
+    },
+    {
+        "model": "vendomatic.transaction",
+        "pk": 4,
+        "fields": {
+            "beverageId": 3,
+            "coin": 0
+        }
+    },
+    {
+        "model": "vendomatic.transaction",
+        "pk": 5,
+        "fields": {
+            "beverageId": 3,
+            "coin": 0
+        }
+    },
+    {
+        "model": "vendomatic.coin",
+        "pk": 5,
+        "fields": {
+            "coin": 2
+        }
+    }
+]
