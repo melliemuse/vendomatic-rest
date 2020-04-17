@@ -4,7 +4,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
-from vendomatic.models import Beverage
+from vendomatic.models import Beverage, Coin, Transaction
 
 
 class InventorySerializer(serializers.HyperlinkedModelSerializer):
@@ -42,7 +42,7 @@ class Inventories(ViewSet):
             '''
         )
             serializer = InventorySerializer(beverage[int(pk)-1], context={'request': request})
-            return Response(serializer.data, headers={'Remaining Item Quantity': beverage[int(pk)-1].stock})
+            return Response({'Remaining Item Quantity': beverage[int(pk)-1].stock})
         except Exception as ex:
             return HttpResponseServerError(ex)
             
@@ -67,4 +67,35 @@ class Inventories(ViewSet):
             many=True,
             context={'request': request}
         )
-        return Response(serializer.data, headers={'X-Coins': beverage[0].stock})
+        return Response({'Array remaining in stock': [beverage[0].stock, beverage[1].stock, beverage[2].stock]}, headers={'X-Coins': beverage[0].stock})
+
+    def update(self, request, pk=None):
+        """
+        Handles PUT requests for individual transaction
+        Returns:
+            Response -- Custom Header with total coins and 204 status code
+        """
+
+
+        transaction = Transaction.objects.all()
+        coin = Coin.objects.all()
+        coin = self.request.query_params.get('coin', None)
+        beverage = Beverage.objects.all()
+        beverage = self.request.query_params.get('id', None)
+
+        # if match is not None:
+        #     message = message.filter(match__id=match)
+
+        if coin.coin > 2:
+
+            
+            
+
+            return Response({'X-Coins': coin.coin}, status=status.HTTP_404_NOT_FOUND)
+        
+            # return Response({'message': ex.args[0]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR) 
+
+    
+
+        return Response({'Items Vended': beverage[0].sold}, headers={'X-Coins': coin.coin -2, 'X-Inventory-Remaining': beverage[0].stock}, status=status.HTTP_204_NO_CONTENT)
+        # return Response(headers={'X-coins': coin.coin}, status=status.HTTP_204_NO_CONTENT)
