@@ -4,7 +4,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
-from vendomatic.models import Beverage, Transaction
+from vendomatic.models import Beverage
 
 
 class InventorySerializer(serializers.HyperlinkedModelSerializer):
@@ -19,7 +19,7 @@ class InventorySerializer(serializers.HyperlinkedModelSerializer):
             view_name='inventory',
             lookup_field='id'
         )
-        fields = ('id', 'beverageType', 'quantity', 'Stock', 'sold')
+        fields = ('id', 'stock')
 
 
 class Inventories(ViewSet):
@@ -31,10 +31,20 @@ class Inventories(ViewSet):
         Returns:
             Response -- JSON serialized inventory instance
         """
+        # beverage = Beverage.objects.get(pk=pk)
+        print(pk)
         try:
-            beverage = Beverage.objects.get(pk=pk)
-            serializer = InventorySerializer(beverage, context={'request': request})
-            return Response(serializer.data)
+            beverage = Beverage.objects.raw(
+            '''
+            SELECT bev.id as id, bev.quantity as quantity, COUNT(trans.beverageId_id) as sold, (bev.quantity - COUNT(trans.beverageId_id)) AS stock FROM
+            vendomatic_beverage bev
+            LEFT Join vendomatic_transaction trans
+            on bev.id = trans.beverageId_id
+            GROUP BY trans.beverageId_id;
+            '''
+        )
+            serializer = InventorySerializer(beverage[int(pk)-1], context={'request': request})
+            return Response(serializer.data, headers={'Remaining Item Quantity': beverage[int(pk)-1].stock})
         except Exception as ex:
             return HttpResponseServerError(ex)
             
@@ -46,7 +56,7 @@ class Inventories(ViewSet):
         """
         beverage = Beverage.objects.raw(
             '''
-            SELECT bev.id, bev.quantity, COUNT(trans.beverageId_id) as sold, (bev.quantity - COUNT(trans.beverageId_id)) AS Stock FROM
+            SELECT bev.id, COUNT(trans.beverageId_id) as sold, (bev.quantity - COUNT(trans.beverageId_id)) AS stock FROM
             vendomatic_beverage bev
             LEFT Join vendomatic_transaction trans
             on bev.id = trans.beverageId_id
@@ -54,16 +64,9 @@ class Inventories(ViewSet):
             '''
         )
 
-        # HttpResponse.__setitem__(header, value)¶
-        # Sets the given header name to the given value. Both header and value should be strings.
-
-        # HttpResponse.__getitem__(header)¶
-        # Returns the value for the given header name. Case-insensitive.
-        
-
         serializer = InventorySerializer(
             beverage,
             many=True,
             context={'request': request}
         )
-        return Response(serializer.data)
+        return Response(serializer.data, headers={'X-Coins': beverage[0].stock})
