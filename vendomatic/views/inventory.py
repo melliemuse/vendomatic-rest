@@ -31,8 +31,6 @@ class Inventories(ViewSet):
         Returns:
             Response -- JSON serialized inventory instance
         """
-        # beverage = Beverage.objects.get(pk=pk)
-        print(pk)
         try:
             beverage = Beverage.objects.raw(
             '''
