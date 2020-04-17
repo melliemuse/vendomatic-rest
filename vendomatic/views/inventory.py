@@ -112,6 +112,9 @@ class Inventories(ViewSet):
             elif beverage[int(pk)-1].stock <= 0:
                 return Response({'X-Coins': item.coin}, status=status.HTTP_403_FORBIDDEN)
             else:
+                drink = Beverage.objects.get(pk=pk)
+                drink.quantity -= 1
+                drink.save()
                 return Response({'Items Vended': 1}, headers={'X-Coins': item.coin -2, 'X-Inventory-Remaining': beverage[int(pk)-1].stock}, status=status.HTTP_204_NO_CONTENT)
             
             
