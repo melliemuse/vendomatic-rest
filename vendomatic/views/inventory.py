@@ -4,7 +4,21 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
-from vendomatic.models import Beverage, Coin, Transaction
+from vendomatic.models import Beverage, Coin
+
+class CoinSerializer(serializers.HyperlinkedModelSerializer):
+    """JSON serializer for coin
+
+    Arguments:
+        serializers.HyperlinkedModelSerializer
+    """
+    class Meta:
+        model = Coin
+        url = serializers.HyperlinkedIdentityField(
+            view_name='coin',
+            lookup_field='id'
+        )
+        fields = ('id', 'coin')
 
 
 class InventorySerializer(serializers.HyperlinkedModelSerializer):
@@ -13,6 +27,7 @@ class InventorySerializer(serializers.HyperlinkedModelSerializer):
     Arguments:
         serializers.HyperlinkedModelSerializer
     """
+    coin = CoinSerializer
     class Meta:
         model = Beverage
         url = serializers.HyperlinkedIdentityField(
@@ -75,27 +90,32 @@ class Inventories(ViewSet):
         Returns:
             Response -- Custom Header with total coins and 204 status code
         """
-
-
-        transaction = Transaction.objects.all()
         coin = Coin.objects.all()
-        coin = self.request.query_params.get('coin', None)
-        beverage = Beverage.objects.all()
-        beverage = self.request.query_params.get('id', None)
-
-        # if match is not None:
-        #     message = message.filter(match__id=match)
-
-        if coin.coin > 2:
-
-            
-            
-
-            return Response({'X-Coins': coin.coin}, status=status.HTTP_404_NOT_FOUND)
+        beverage = Beverage.objects.raw(
+        '''
+        SELECT bev.id as id, bev.quantity as quantity, COUNT(trans.beverageId_id) as sold, (bev.quantity - COUNT(trans.beverageId_id)) AS stock FROM
+        vendomatic_beverage bev
+        LEFT Join vendomatic_transaction trans
+        on bev.id = trans.beverageId_id
+        GROUP BY trans.beverageId_id;
+            '''
+        )
+        serializer = InventorySerializer(beverage[int(pk)-1], context={'request': request})
         
-            # return Response({'message': ex.args[0]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR) 
+        
+        for item in coin:
+            print(item.coin)
+            print(beverage[int(pk)-1].stock <= 0)
+            print(beverage[int(pk)-1].stock)
+            if item.coin < 2:
+                return Response({'X-Coins': item.coin}, status=status.HTTP_404_NOT_FOUND)
+            elif beverage[int(pk)-1].stock <= 0:
+                return Response({'X-Coins': item.coin}, status=status.HTTP_403_FORBIDDEN)
+            else:
+                return Response({'Items Vended': 1}, headers={'X-Coins': item.coin -2, 'X-Inventory-Remaining': beverage[int(pk)-1].stock}, status=status.HTTP_204_NO_CONTENT)
+            
+            
+            
 
-    
-
-        return Response({'Items Vended': beverage[0].sold}, headers={'X-Coins': coin.coin -2, 'X-Inventory-Remaining': beverage[0].stock}, status=status.HTTP_204_NO_CONTENT)
-        # return Response(headers={'X-coins': coin.coin}, status=status.HTTP_204_NO_CONTENT)
+        
+        
